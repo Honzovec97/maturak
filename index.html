@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner with Name</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="scanner-container">
+        <h2>ZAREGISTRUJ SVOJÍ KARTU!</h2>
+        <div id="my-qr-reader"></div>
+        <div id="your-qr-result"></div>
+        <input id="input-name" type="text" placeholder="ZADEJ SVOJE JMÉNO" />
+        <div id="odpoved"></div>
+        <button id="save-data-button">REGISTROVAT</button>
+        <button id="scan-again-button">SKENUJ ZNOVU</button>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+        const myqr = document.getElementById('your-qr-result');
+        const nameInput = document.getElementById('input-name');
+        const scannerContainer = document.getElementById('my-qr-reader');
+        const scanAgainButton = document.getElementById('scan-again-button');
+        const saveDataButton = document.getElementById('save-data-button');
+        const odpoved = document.getElementById('odpoved');
+        let htmlscanner;
+        let lastResult = null;
+
+        // Funkce pro dekódování kódu
+        function decodeCode(code) {
+            if (code.length !== 6) {
+                throw new Error("Neplatný kód");
+            }
+
+            const firstLetter = code.charCodeAt(0) - 'A'.charCodeAt(0);
+            const secondLetter = code.charCodeAt(1) - 'A'.charCodeAt(0);
+            const digits = parseInt(code.substring(2, 4), 10);
+            const thirdLetter = code.charCodeAt(4) - 'A'.charCodeAt(0);
+            const fourthLetter = code.charCodeAt(5) - 'A'.charCodeAt(0);
+
+            return (firstLetter * 26 * 26) + (secondLetter * 100) + digits + (thirdLetter * 26) + (fourthLetter;
+        }
+
+        function startScanner() {
+            htmlscanner = new Html5Qrcode("my-qr-reader");
+            htmlscanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 300, height: 300 } },
+                onScanSuccess
+            ).catch(console.error);
+        }
+
+        function onScanSuccess(decodedText) {
+            if (decodedText !== lastResult) {
+                lastResult = decodedText;
+
+                // Dekódování kódu
+                let number;
+                try {
+                    number = decodeCode(decodedText);
+                    myqr.innerHTML = `TVOJE SOUTĚŽNÍ ČÍSLO JE ${number}`;
+                } catch (error) {
+                    myqr.innerHTML = error.message;
+                    return;
+                }
+
+                // Zobrazit vstupní pole pro jméno
+                scannerContainer.style.display = "none";
+                nameInput.style.display = "block";
+                saveDataButton.style.display = "block";
+                odpoved.style.display = "block";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            startScanner();
+        });
+
+        scanAgainButton.addEventListener("click", () => {
+            lastResult = null;
+            myqr.innerHTML = "";
+            nameInput.value = "";
+            scannerContainer.style.display = "block";
+            odpoved.innerHTML = "";
+            nameInput.style.display = "none";
+            saveDataButton.style.display = "none";
+            startScanner();
+        });
+
+        saveDataButton.addEventListener("click", () => {
+            const name = nameInput.value.trim();
+            const number = lastResult; // Použijeme naskenované číslo
+
+            if (name && number) {
+                fetch('save_data.php', { // Ujistěte se, že cesta je správná
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `name=${encodeURIComponent(name)}&number=${encodeURIComponent(number)}`,
+                })
+                .then(response => response.text())
+                .then(data => {
+                    odpoved.innerHTML = data; // Zobrazíme odpověď ze serveru
+                    nameInput.value = ""; // Vyčistíme pole po uložení
+                    nameInput.style.display = "none";
+                    saveDataButton.style.display = "none";
+                    scanAgainButton.style.display = "block";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    odpoved.innerHTML = "Došlo k chybě při ukládání.";
+                });
+            } else {
+                odpoved.innerHTML = "ZADEJTE JMÉNO A NASKENUJTE KÓD";
+            }
+        });
+    </script>
+</body>
+</html>
