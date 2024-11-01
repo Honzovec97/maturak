@@ -8,11 +8,12 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+const filePath = path.join(__dirname, 'data.json');
+
 // Endpoint to save data
 app.post('/save-data', (req, res) => {
     console.log('Received data:', req.body); // Log received data
     const { name, number } = req.body;
-    const filePath = path.join(__dirname, 'data.json');
 
     // Read existing data and check for duplicates
     fs.readFile(filePath, 'utf8', (err, fileData) => {
@@ -38,8 +39,18 @@ app.post('/save-data', (req, res) => {
     });
 });
 
+// Endpoint to load previously saved data
+app.get('/load-data', (req, res) => {
+    fs.readFile(filePath, 'utf8', (err, fileData) => {
+        if (err) {
+            return res.status(500).json({ message: 'CHYBA PŘI NAČÍTÁNÍ DAT' });
+        }
+        const jsonData = fileData ? JSON.parse(fileData) : [];
+        res.status(200).json(jsonData);
+    });
+});
+
 // Create an empty data.json file if it doesn't exist
-const filePath = path.join(__dirname, 'data.json');
 if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, JSON.stringify([], null, 2));
 }
