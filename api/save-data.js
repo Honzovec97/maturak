@@ -4,7 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-app.use(cors());
+
+// Set CORS options to allow the specific frontend origin
+const corsOptions = {
+    origin: 'https://maturak-psi.vercel.app',
+    methods: 'POST',
+    allowedHeaders: ['Content-Type']
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 let jsonData = []; // In-memory storage for registration data
@@ -25,4 +33,3 @@ app.post('/save-data', (req, res) => {
 });
 
 module.exports = app;
-
