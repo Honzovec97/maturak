@@ -35,7 +35,6 @@
     </div>
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
     const myqr = document.getElementById('your-qr-result');
     const nameInput = document.getElementById('input-name');
@@ -105,7 +104,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         startScanner();
 
-        fetch('http://localhost:3000/load-data')
+        fetch('https://maturak-cq1qi28qj-honzovec97s-projects.vercel.app/load-data')
             .then(response => response.json())
             .then(data => {
                 if (data && data.length) {
@@ -135,7 +134,7 @@
         const number = lastResult;
 
         if (name && number) {
-            fetch('http://localhost:3000/save-data', {
+            fetch('http://https://maturak-cq1qi28qj-honzovec97s-projects.vercel.app/save-data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
