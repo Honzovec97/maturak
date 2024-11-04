@@ -35,7 +35,7 @@
     </div>
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-        <script>
+    <script>
         const myqr = document.getElementById('your-qr-result');
         const nameInput = document.getElementById('input-name');
         const saveDataButton = document.getElementById('save-data-button');
@@ -52,7 +52,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Master-Key': '$2a$10$0tpYvgeECNcd6KlRcrXDqefVvMD7NTPCPGj7YNsTASodtEODgv/Oi'  // Nahraďte vaším JSONBin.io API klíčem
+                        'X-Master-Key': '<YOUR_API_KEY>'  // Nahraďte vaším JSONBin.io API klíčem
                     },
                     body: JSON.stringify({ name, number })
                 })
