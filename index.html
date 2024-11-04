@@ -35,101 +35,26 @@
     </div>
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script>
+        <script>
         const myqr = document.getElementById('your-qr-result');
         const nameInput = document.getElementById('input-name');
-        const scannerContainer = document.getElementById('my-qr-reader');
-        const scanAgainButton = document.getElementById('scan-again-button');
         const saveDataButton = document.getElementById('save-data-button');
         const odpoved = document.getElementById('odpoved');
-        let htmlscanner;
         let lastResult = null;
 
-        document.getElementById('rules-button').addEventListener('click', () => {
-            const rulesContent = document.getElementById('rules-content');
-            rulesContent.style.display = (rulesContent.style.display === 'none' || rulesContent.style.display === '') ? 'block' : 'none';
-        });
-
-        // Function to decode QR code
-        function decodeCode(code) {
-            if (code.length !== 6) {
-                throw new Error("Neplatný kód");
-            }
-
-            const firstLetter = code.charCodeAt(0) - 'A'.charCodeAt(0);
-            const secondLetter = code.charCodeAt(1) - 'A'.charCodeAt(0);
-            const digits = parseInt(code.substring(2, 4), 10);
-            const thirdLetter = code.charCodeAt(4) - 'A'.charCodeAt(0);
-            const fourthLetter = code.charCodeAt(5) - 'A'.charCodeAt(0);
-
-            return (firstLetter * 26 * 26) + (secondLetter * 100) + digits + (thirdLetter * 26) + (fourthLetter);
-        }
-
-        // Start the QR scanner
-        function startScanner() {
-            htmlscanner = new Html5Qrcode("my-qr-reader");
-            htmlscanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 300, height: 300 } },
-                onScanSuccess
-            ).catch(console.error);
-        }
-
-        function onScanSuccess(decodedText) {
-            if (decodedText !== lastResult) {
-                lastResult = decodedText;
-
-                let number;
-                try {
-                    number = decodeCode(decodedText);
-                    myqr.innerHTML = `TVOJE SOUTĚŽNÍ ČÍSLO JE ${number}`;
-                } catch (error) {
-                    myqr.innerHTML = error.message;
-                    return;
-                }
-
-                // Hide scanner and show scan result
-                htmlscanner.stop().then(() => {
-                    scannerContainer.style.display = "none";
-                    odpoved.style.display = "block";
-                    nameInput.style.display = "block";
-                    saveDataButton.style.display = "block";
-                    scanAgainButton.style.display = "block";
-                }).catch(console.error);
-            }
-        }
-
-        // Initialize scanner on page load
-        document.addEventListener("DOMContentLoaded", () => {
-            startScanner();
-        });
-
-        // Handle "Scan Again" button click
-        scanAgainButton.addEventListener("click", () => {
-            lastResult = null;
-            myqr.innerHTML = "";
-            nameInput.value = ""; // Clear the input field
-            nameInput.style.display = "none";
-            odpoved.innerHTML = "";
-            odpoved.style.display = "none";
-            saveDataButton.style.display = "none";
-            scanAgainButton.style.display = "none";
-            scannerContainer.style.display = "block";
-            startScanner(); // Reinitialize scanner
-        });
-
-        // Handle "Save Data" button click
+        // Funkce pro ukládání dat do JSONBin.io
         saveDataButton.addEventListener("click", () => {
             const name = nameInput.value.trim();
             const number = lastResult;
 
             if (name && number) {
-                fetch('/api/save-data', {  // Updated to Vercel’s API path
+                fetch('https://api.jsonbin.io/v3/b', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$0tpYvgeECNcd6KlRcrXDqefVvMD7NTPCPGj7YNsTASodtEODgv/Oi'  // Nahraďte vaším JSONBin.io API klíčem
                     },
-                    body: JSON.stringify({ name, number }),
+                    body: JSON.stringify({ name, number })
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -140,22 +65,22 @@
                     return response.json();
                 })
                 .then(data => {
-                    document.getElementById('odpoved').innerHTML = `ÚSPĚŠNĚ JSI SE ZAREGISTROVAL POD JMÉNEM ${name} A ČÍSLEM ${number}`;
-                    if (data.message) {
-                        nameInput.value = "";
-                        nameInput.style.display = "none";
-                        odpoved.style.display = "block";
-                        saveDataButton.style.display = "none";
-                        scanAgainButton.style.display = "block";
-                    }
+                    odpoved.innerHTML = `ÚSPĚŠNĚ JSI SE ZAREGISTROVAL POD JMÉNEM ${name} A ČÍSLEM ${number}`;
+                    nameInput.value = "";  // Vymazat pole po úspěšné registraci
+                    odpoved.style.display = "block";
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    document.getElementById('odpoved').innerHTML = error.message;
+                    odpoved.innerHTML = error.message;
                 });
             } else {
-                document.getElementById('odpoved').innerHTML = "ZADEJTE JMÉNO";
+                odpoved.innerHTML = "ZADEJTE JMÉNO";
             }
+        });
+
+        // Inicializace skeneru při načtení stránky
+        document.addEventListener("DOMContentLoaded", () => {
+            startScanner();
         });
     </script>
 </body>
